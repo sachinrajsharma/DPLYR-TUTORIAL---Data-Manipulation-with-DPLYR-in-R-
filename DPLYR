@@ -175,4 +175,77 @@ flights %>%
 
 ```
 
+## Helper functions 'n()' counts the number of rows in a group 
+## Helper function 'n_distinct(vector)' counts the number of distinct items in that vector 
 
+```{r}
+# for each day of the year , count the total number of flights and sort in descending order 
+
+library(dplyr)
+flights %>% 
+  group_by(Month, DayofMonth) %>% 
+  summarise(flight_count = n()) %>% 
+  arrange(desc(flight_count))
+
+```
+
+
+## We can also use "tally " function 
+
+```{r}
+
+flights %>% 
+  group_by(Month, DayofMonth) %>% 
+  tally(sort = TRUE)
+
+```
+
+# for each destination, count the total number of flights and the number of distinct planes that flew there 
+
+```{r}
+flights %>% 
+  group_by(Dest) %>% 
+  summarise(flight_count = n(), plane_count = n_distinct(TailNum))
+
+```
+
+
+
+# for each destination lets check the cancelled and not cancelled flights 
+
+```{r}
+
+flights %>% 
+  group_by(Dest) %>% 
+  select(Cancelled) %>% 
+  table()
+
+
+```
+
+
+# Window functions 
+
+```{r}
+
+# for each carrier , calculate which two days of the year they had trheir longest departure delays 
+
+flights %>% 
+  group_by(UniqueCarrier) %>% 
+  select(Month, DayofMonth, DepDelay) %>% 
+  filter(min_rank(desc(DepDelay))<= 2) %>% 
+  arrange(UniqueCarrier, desc(DepDelay))
+
+
+```
+
+
+# for each month, calculate the number of flights and the change from the preivous month 
+
+```{r}
+flights %>% 
+  group_by(Month) %>% 
+  summarise(flight_count = n()) %>% 
+  mutate(change = flight_count - lag(flight_count))
+
+```
