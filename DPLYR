@@ -123,6 +123,30 @@ flights %>%
 
 ```
 
+
+# note : is.na() can be useful while filtering na values
+
+```{r}
+
+flights %>%  filter(!is.na(DepTime))
+
+
+```
+
+# slice() filter rows by position 
+
+```{r}
+flights %>%  slice(100:150)
+
+
+```
+# keeping the first four rows within each group 
+
+```{r}
+
+flights %>%  group_by(Month, DayofMonth) %>% slice(1:4) 
+
+```
 ## Adding a new column by using functions on the existing data 
 
 ```{r}
@@ -249,3 +273,128 @@ flights %>%
   mutate(change = flight_count - lag(flight_count))
 
 ```
+
+## we can also use tally() function 
+
+```{r}
+
+
+flights %>% 
+  group_by(Month) %>% 
+  tally() %>% 
+  mutate(change = n - lag(n)) # where n is flight count 
+
+```
+
+
+## Few more function 
+
+```{r}
+# need to see few rows for random sampling without replacement
+
+flights %>% sample_n(5)
+
+
+```
+
+```{r}
+# randomly sample a fraction of rows, with replacement 
+
+flights %>%  sample_frac(0.25, replace = TRUE)
+
+
+```
+
+# In base R , we use the following to check the structure of object
+
+```{r}
+
+str(flights)
+
+```
+
+# Using dplyr to check the structure of object 
+
+
+```{r}
+
+glimpse(flights)
+
+```
+
+# Now time to connect the database 
+
+* dplyr can connect to database 
+* only generate select statements 
+```{r}
+
+# connect to an SQLite databse containing hflights data 
+
+my_data = src_sqlite("my_data.sqlite3")
+
+# connect to the hflights table in that database 
+
+flights_tbl = tbl(my_data, "hflights")
+
+#  query with our dataframe  
+
+flights %>% 
+  select(UniqueCarrier, DepDelay) %>% 
+  arrange(desc(DepDelay))
+
+
+# same query using the database 
+
+flights_tbl %>% 
+  select(UniqueCarrier, DepDelay) %>% 
+  arrange(desc(DepDelay))
+
+```
+# Joining (merging ) tables : left_join, right_join, inner_join, full_join, semi_join, anti_join 
+
+```{r}
+
+# lets create two simple data frame to understand this concept
+
+(a = data.frame(name = c("John", "Lilly", "Tempoo", "Robin", "Sachin"), num = 1:5))
+
+(b = data.frame(name = c("John", "Lilly", "Simby", "Preet", "Sachin"), stud_id = 1001:1005))
+
+a
+b
+```
+
+```{r}
+
+inner_join(a,b)
+# only include observations found in both "a" and "b" it shows the variables that appear in both tables 
+
+# full join , include observations either in a or b , this is union of two sets 
+
+full_join(a,b)
+
+# left join, include observations found in a 
+
+left_join(a,b)
+
+# right join, include observations found in b 
+
+right_join(a,b)
+
+# semi join , filter a to only show observations that match b 
+semi_join(a,b)
+
+# anti join , filter a to only show observations that not match b 
+
+anti_join(a,b)
+
+# sometime matching variables don't have idential names 
+
+b = b %>%  rename(stud_n = name)
+b
+
+# we have to specify that join should occur by matching " name" in a with "stud_n" in b 
+
+inner_join(a,b, by = c("name" = "stud_n"))
+```
+
